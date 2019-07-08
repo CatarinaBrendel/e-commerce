@@ -2,40 +2,43 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = (request, response, next) => {
-    Product.fetchAll(products => {
-        response.render("shop/product-list", {
-          prods: products,
-          pageTitle: "All Products",
-          path: "/",
-          hasProducts: products.length > 0,
-          activeShop: true,
-          productCSS: true
-        });
-    });  
+    Product.fetchAll()
+        .then(([rows]) => {
+            response.render("shop/product-list", {
+                prods: rows,
+                pageTitle: "All Products",
+                path: "/products",
+                hasProducts: rows.length > 0,
+                activeShop: true,
+                productCSS: true
+            });
+        })
+        .catch(error => console.error(error));
 };
 
 exports.getProduct = (request, response, next) => {
     const productId = request.params.productId;
-    Product.findById(productId, product => {
+    Product.findById(productId)
+    .then(([product]) => {
         response.render('shop/product-detail', {
-            pageTitle: product.title, 
-            path: '/products', 
-            product: product
+        pageTitle: product.title, 
+        path: '/products', 
+        product: product[0]
         });
-    });
+    })
+    .catch(error => console.error(error));
 };
 
 exports.getIndex = (request, response, next) => {
-    Product.fetchAll(products => {
-      response.render("shop/index", {
-        prods: products,
-        pageTitle: "Shop",
-        path: "/",
-        hasProducts: products.length > 0,
-        activeShop: true,
-        productCSS: true
-      });
-    });  
+    Product.fetchAll()
+        .then(([rows, fieldData]) => {
+            response.render("shop/index", {
+                prods: rows,
+                pageTitle: "Shop",
+                path: "/"
+            });
+        })
+        .catch(error => console.error(error));  
 };
 
 exports.getCart = (request, response, next) => {
