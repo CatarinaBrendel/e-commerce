@@ -13,18 +13,12 @@ exports.postAddProduct = (request, response, next) => {
   const imageUrl = request.body.imageUrl;
   const price = request.body.price;
   const description = request.body.description;
-  request.user
-    .createProduct({
-    title: title,
-    price: price,
-    imageUrl: imageUrl,
-    description: description,
-    userId: request.user.id
-  })
+  const product = new Product(title, price, description, imageUrl);
+  product.save()
     .then( result => {
     //console.log(result);
     console.log('Successfuly added Product');
-    response.redirect('/products');
+    response.redirect('/admin/products');
   })
     .catch(error => {
       console.error(error);
@@ -38,11 +32,8 @@ exports.getEditProduct = (request, response, next) => {
   }
 
   const productId = request.params.productId;
-  request.user.
-    getProducts({where: {id: productId}})
-    //Product.findByPk(productId)
-    .then(products => {
-      const product = products[0];
+  Product.findById(productId)
+    .then(product => {
       if(!product){
         return response.redirect('/');
       }
@@ -63,14 +54,14 @@ exports.postEditProduct = (request, response, next) => {
   const updatedImageUrl = request.body.imageUrl;
   const updatedPrice = request.body.price;
   const updatedDescription = request.body.description;
-  Product.findByPk(productId)
-    .then(product => {
-      product.title = updatedTitle;
-      product.price = updatedPrice;
-      product.description = updatedDescription;
-      product.imageUrl = updatedImageUrl;
-      return product.save();
-    })
+  const product = new Product(
+    updatedTitle, 
+    updatedImageUrl, 
+    updatedPrice, 
+    updatedDescription,
+    productId
+  );
+  product.save()
     .then(() => {
       console.log('Successfully updated Product!');
       response.redirect('/admin/products');
@@ -79,8 +70,7 @@ exports.postEditProduct = (request, response, next) => {
 };
 
 exports.getProducts = (request, response, next) => {
-  request.user
-    .getProducts()
+  Product.fetchAll()
     .then(products => {
       response.render('admin/products', {
           prods: products,
@@ -93,14 +83,6 @@ exports.getProducts = (request, response, next) => {
 
 exports.postDeleteProduct = (request, response, next) => {
   const productId = request.body.productId;
-  Product.findByPk(productId)
-    .then(product => {
-      return product.destroy();
-    })
-    .then(() => {
-      console.log('Successfully deleted the Product!')
-      response.redirect('/admin/products');
-    })
-    .catch(error => console.log(error));
-  
+  Product.deleteById(productId);
+  response.redirect('/admin/products');
 };
