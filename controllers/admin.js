@@ -13,16 +13,16 @@ exports.postAddProduct = (request, response, next) => {
   const imageUrl = request.body.imageUrl;
   const price = request.body.price;
   const description = request.body.description;
-  const product = new Product(
-    title, 
-    price, 
-    description, 
-    imageUrl, 
-    null, 
-    request.user._id);
-  product.save()
+  const product = new Product({
+    title: title,
+    price: price,
+    description: description,
+    imageUrl: imageUrl,
+    userId: request.user //in mongoose we don't need to specify the _id, as mongoose itself deals with it!
+  });
+
+  product.save() //save method provided by Mongoose
     .then( result => {
-    //console.log(result);
     console.log('Successfuly added Product');
     response.redirect('/admin/products');
   })
@@ -60,14 +60,15 @@ exports.postEditProduct = (request, response, next) => {
   const updatedImageUrl = request.body.imageUrl;
   const updatedPrice = request.body.price;
   const updatedDescription = request.body.description;
-  const product = new Product(
-    updatedTitle, 
-    updatedImageUrl, 
-    updatedPrice, 
-    updatedDescription,
-    productId
-  );
-  product.save()
+
+  Product.findById(productId)
+  .then(product => {
+    product.title = updatedTitle;
+    product.price = updatedPrice;
+    product.description = updatedDescription;
+    product.imageUrl = updatedImageUrl;
+    return product.save();
+  })
     .then(() => {
       console.log('Successfully updated Product!');
       response.redirect('/admin/products');
@@ -76,7 +77,9 @@ exports.postEditProduct = (request, response, next) => {
 };
 
 exports.getProducts = (request, response, next) => {
-  Product.fetchAll()
+  Product.find()
+  // .select('title price -_id') 
+  // .populate('userId', 'name') -> info selected by Mongosse when retrieving the data
     .then(products => {
       response.render('admin/products', {
           prods: products,
@@ -89,6 +92,9 @@ exports.getProducts = (request, response, next) => {
 
 exports.postDeleteProduct = (request, response, next) => {
   const productId = request.body.productId;
-  Product.deleteById(productId);
-  response.redirect('/admin/products');
+  Product.findByIdAndRemove(productId)
+    .then(() => {console.log('Product removed from database!')
+      response.redirect("/admin/products");
+    })
+    .catch(error => console.log(error));
 };
