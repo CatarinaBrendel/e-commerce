@@ -4,11 +4,11 @@ const Order = require('../models/order');
 exports.getProducts = (request, response, next) => {
     Product.find()
         .then(products => {
-            console.log(products);
-            response.render("shop/product-list", {
-                prods: products,
-                pageTitle: "All Products",
-                path: "/products"
+            response.render('shop/product-list', {
+              prods: products,
+              pageTitle: 'All Products',
+              path: '/products',
+              isAuthenticated: request.session.isLoggedIn
             });
         })
         .catch(error => console.error(error)); 
@@ -18,10 +18,11 @@ exports.getProduct = (request, response, next) => {
     const productId = request.params.productId;
     Product.findById(productId)
         .then(product => {
-            response.render("shop/product-detail", {
-                pageTitle: product.title,
-                path: "/products",
-                product: product
+            response.render('shop/product-detail', {
+              pageTitle: product.title,
+              path: '/products',
+              product: product,
+              isAuthenticated: request.session.isLoggedIn
             });
         })
         .catch(error => console.error(error));
@@ -30,10 +31,11 @@ exports.getProduct = (request, response, next) => {
 exports.getIndex = (request, response, next) => {
     Product.find()
         .then(products => {
-            response.render("shop/index", {
-                prods: products,
-                pageTitle: "Shop",
-                path: "/"
+            response.render('shop/index', {
+              prods: products,
+              pageTitle: 'Shop',
+              path: '/',
+              isAuthenticated: request.session.isLoggedIn
             });
         })
         .catch(error => console.error(error)); 
@@ -46,9 +48,10 @@ exports.getCart = (request, response, next) => {
         .then(user => {
             const products = user.cart.items;
             response.render('shop/cart', {
-                path: '/cart',
-                pageTitle: 'Your Cart',
-                products: products
+              path: '/cart',
+              pageTitle: 'Your Cart',
+              products: products,
+              isAuthenticated: request.session.isLoggedIn
             });
         })
         .catch(error => console.error(error));
@@ -101,14 +104,15 @@ exports.postOrder = (request, response, next) => {
 };
 
 exports.getOrders = (request, response, next) => {
-    Order.find({'user.userId': request.user._id})
-        .then(orders => {
-            response.render('shop/orders', {
-                path: '/orders',
-                pageTitle: 'Your Orders',
-                orders: orders
-            })
-        })
+  Order.find({ 'user.userId': request.user._id })
+    .then(orders => {
+      response.render('shop/orders', {
+        path: '/orders',
+        pageTitle: 'Your Orders',
+        orders: orders,
+        isAuthenticated: request.session.isLoggedIn
+      });
+    })
 
-        .catch(error => console.error(error));
+    .catch(error => console.error(error));
 };

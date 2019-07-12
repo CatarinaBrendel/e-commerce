@@ -1,10 +1,11 @@
-const Product = require("../models/product");
+const Product = require('../models/product');
 
 exports.getAddProduct = (request, response, next) => {
-  response.render("admin/edit-product", {
-    pageTitle: "Add Product",
-    path: "/admin/add-product",
-    editing: false
+  response.render('admin/edit-product', {
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
+    editing: false,
+    isAuthenticated: request.session.isLoggedIn
   });
 };
 
@@ -47,7 +48,8 @@ exports.getEditProduct = (request, response, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
-        product: product
+        product: product,
+        isAuthenticated: request.session.isLoggedIn
       }); 
     })
     .catch(error => console.log(error));
@@ -84,7 +86,8 @@ exports.getProducts = (request, response, next) => {
       response.render('admin/products', {
           prods: products,
           pageTitle: 'Admin Products',
-          path: '/admin/products'
+          path: '/admin/products',
+          isAuthenticated: request.session.isLoggedIn
       });
     })
     .catch(error => console.log(error));
@@ -94,7 +97,7 @@ exports.postDeleteProduct = (request, response, next) => {
   const productId = request.body.productId;
   Product.findByIdAndRemove(productId)
     .then(() => {console.log('Product removed from database!')
-      response.redirect("/admin/products");
+      response.redirect('/admin/products');
     })
     .catch(error => console.log(error));
 };
