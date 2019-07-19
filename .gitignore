@@ -1,2 +1,3 @@
 # Git will ignore the following file
 node_modules
+.env

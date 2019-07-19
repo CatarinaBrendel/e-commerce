@@ -7,8 +7,7 @@ exports.getProducts = (request, response, next) => {
             response.render('shop/product-list', {
               prods: products,
               pageTitle: 'All Products',
-              path: '/products',
-              isAuthenticated: request.session.isLoggedIn
+              path: '/products'
             });
         })
         .catch(error => console.error(error)); 
@@ -21,8 +20,7 @@ exports.getProduct = (request, response, next) => {
             response.render('shop/product-detail', {
               pageTitle: product.title,
               path: '/products',
-              product: product,
-              isAuthenticated: request.session.isLoggedIn
+              product: product
             });
         })
         .catch(error => console.error(error));
@@ -34,8 +32,7 @@ exports.getIndex = (request, response, next) => {
             response.render('shop/index', {
               prods: products,
               pageTitle: 'Shop',
-              path: '/',
-              isAuthenticated: request.session.isLoggedIn
+              path: '/'
             });
         })
         .catch(error => console.error(error)); 
@@ -50,8 +47,7 @@ exports.getCart = (request, response, next) => {
             response.render('shop/cart', {
               path: '/cart',
               pageTitle: 'Your Cart',
-              products: products,
-              isAuthenticated: request.session.isLoggedIn
+              products: products
             });
         })
         .catch(error => console.error(error));
@@ -91,7 +87,7 @@ exports.postOrder = (request, response, next) => {
             });
             const order = new Order({
               user: {
-                name: request.user.name,
+                email: request.user.email,
                 userId: request.user
               },
               products: products
@@ -109,8 +105,7 @@ exports.getOrders = (request, response, next) => {
       response.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Your Orders',
-        orders: orders,
-        isAuthenticated: request.session.isLoggedIn
+        orders: orders
       });
     })
 

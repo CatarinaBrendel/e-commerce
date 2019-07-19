@@ -5,18 +5,23 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
+const flash = require('connect-flash');
+
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
-
-const MONGODB_URI = 'mongodb+srv://catarina:daztav-soCkek-nupfi3@cluster0-6anqz.mongodb.net/shop';
+const mongoDBUri = require('./config/config');
 
 const app = express();
 
 const store = new MongoDBStore({
-    uri: MONGODB_URI,
+    uri: mongoDBUri.mongoUri,
     collection: 'sessions' 
 });
+
+const csrfProtection = csrf();
+app.use(flash());
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -35,26 +40,50 @@ app.use(session({
     store: store
 })); //for production: better a long string value
 
+app.use(csrfProtection);
+app.use(flash());
+
+app.use((request, response, next) => {
+    response.locals.isAuthenticated = request.session.isLoggedIn;
+    response.locals.csrfToken = request.csrfToken();
+    next();
+});
+
 app.use((request, response, next) => {
     if (!request.session.user) {
         return next();
     }
     User.findById(request.session.user._id)
         .then(user => {
+            if(!user) {
+                return next();
+            }
             request.user = user;
             next();
         })
-        .catch(error => console.error(error));
+        .catch(error => {
+            next(new Error(error));
+        });
 });
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
+app.get('/500', errorController.get500);
 app.use(errorController.get404);
 
+app.use((error, request, response, next) => {
+    response.status(500).render('500', {
+        pageTitle: 'Error!',
+        path: '/500',
+        isAuthenticated: request.session.isLoggedIn
+    });
+});
+
+
 mongoose
-    .connect(MONGODB_URI)
+    .connect(mongoDBUri.mongoUri)
     .then(result => {
         app.listen(3000);
         console.log("Application started on localhost:3000");
