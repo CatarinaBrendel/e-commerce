@@ -113,7 +113,7 @@ exports.postEditProduct = (request, response, next) => {
   const productId = request.body.productId;
   const updatedTitle = request.body.title;
   // const updatedImageUrl = request.body.imageUrl;
-  const updatedImage = request.file;
+  const image = request.file;
   const updatedPrice = request.body.price;
   const updatedDescription = request.body.description;
   const errors = validationResult(request);
