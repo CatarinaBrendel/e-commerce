@@ -6,16 +6,35 @@ const PDFDocument = require('pdfkit');
 const Product = require('../models/product');
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 2;
+
 exports.getProducts = (request, response, next) => {
-    Product.find()
-        .then(products => {
-            response.render('shop/product-list', {
-              prods: products,
-              pageTitle: 'All Products',
-              path: '/products'
-            });
-        })
-        .catch(error => next(error)); 
+  const page = +request.query.page || 1;
+  let totalItems;
+
+  Product.find()
+    .countDocuments()
+    .then(numProducts => {
+      totalItems = numProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    })
+    .then(products => {
+      response.render('shop/product-list', {
+        prods: products,
+        pageTitle: 'Products',
+        path: '/',
+        totalProducts: totalItems,
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPrevousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+      });
+    })
+    .catch(error => next(error)); 
 };
 
 exports.getProduct = (request, response, next) => {
@@ -32,12 +51,29 @@ exports.getProduct = (request, response, next) => {
 };
 
 exports.getIndex = (request, response, next) => {
+  const page = +request.query.page || 1;
+  let totalItems;
+
     Product.find()
+      .countDocuments()
+      .then(numProducts => {
+        totalItems = numProducts;
+        return Product.find()
+          .skip((page - 1) * ITEMS_PER_PAGE)
+          .limit(ITEMS_PER_PAGE)
+      })
         .then(products => {
             response.render('shop/index', {
               prods: products,
               pageTitle: 'Shop',
-              path: '/'
+              path: '/',
+              totalProducts: totalItems,
+              currentPage: page,
+              hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+              hasPreviousPage: page > 1,
+              nextPage: page + 1,
+              previousPage: page - 1,
+              lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
             });
         })
         .catch(error => next(error)); 
