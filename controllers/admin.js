@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const Product = require('../models/product');
+const fileHelper = require('../util/file');
 
 exports.getAddProduct = (request, response, next) => {
   response.render('admin/edit-product', {
@@ -15,9 +16,28 @@ exports.getAddProduct = (request, response, next) => {
 
 exports.postAddProduct = (request, response, next) => {
   const title = request.body.title;
-  const imageUrl = request.body.imageUrl;
+  // const imageUrl = request.body.imageUrl;
+  const image = request.file;
   const price = request.body.price;
   const description = request.body.description;
+
+  if(!image) {
+    return response.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      hasError: true,
+      product: {
+        title: title,
+        image: image,
+        price: price,
+        description: description
+      },
+      errorMessage: 'Attached file is not a valid image',
+      validationErrors: [errors.array()]
+    });
+  }
+
   const errors = validationResult(request);
 
   if(!errors.isEmpty()) {
@@ -28,7 +48,7 @@ exports.postAddProduct = (request, response, next) => {
       hasError: true,
       product: {
         title: title,
-        imageUrl: imageUrl,
+        image: image,
         price: price,
         description: description
       },
@@ -36,6 +56,8 @@ exports.postAddProduct = (request, response, next) => {
       validationErrors: errors.array()
     }); 
   }
+
+  const imageUrl = image.path;
 
   const product = new Product({
     title: title,
@@ -54,7 +76,7 @@ exports.postAddProduct = (request, response, next) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
-    })
+    });
 };
 
 exports.getEditProduct = (request, response, next) => {
@@ -90,7 +112,8 @@ exports.getEditProduct = (request, response, next) => {
 exports.postEditProduct = (request, response, next) => {
   const productId = request.body.productId;
   const updatedTitle = request.body.title;
-  const updatedImageUrl = request.body.imageUrl;
+  // const updatedImageUrl = request.body.imageUrl;
+  const updatedImage = request.file;
   const updatedPrice = request.body.price;
   const updatedDescription = request.body.description;
   const errors = validationResult(request);
@@ -103,7 +126,6 @@ exports.postEditProduct = (request, response, next) => {
       hasError: true,
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDescription,
         _id: productId
@@ -121,7 +143,10 @@ exports.postEditProduct = (request, response, next) => {
     product.title = updatedTitle;
     product.price = updatedPrice;
     product.description = updatedDescription;
-    product.imageUrl = updatedImageUrl;
+    if(image) {
+      fileHelper.deleteFile(product.imageUrl);
+      product.imageUrl = image.path;
+    }
     return product.save()
       .then(() => {
         console.log('Successfully updated Product!');
@@ -155,7 +180,14 @@ exports.getProducts = (request, response, next) => {
 
 exports.postDeleteProduct = (request, response, next) => {
   const productId = request.body.productId;
-  Product.deleteOne({_id: productId, userId: request.user._id})
+  Product.findById(productId)
+    .then(product => {
+      if(!product) {
+        return next(new Error('Product not found in Database'));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: productId, userId: request.user._id })
+    })
     .then(() => {
       console.log('Product removed from database!')
       response.redirect('/admin/products');
