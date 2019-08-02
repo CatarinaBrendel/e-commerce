@@ -1,6 +1,6 @@
 ## E-Commerce Web App
 
-This is a small web app created as part of a Udemy course: 2Nodejs - The Complete Guide (incl. MVC, REST APIs, GraphQL) from the instructor [Maximilian Schwarzmüller](https://academind.com). The Project uses basics and advanced concepts of JavaScript (including ES6) and is currently not fully functionable. A deployment is programmmed by the end of the course. Its currently version is 1.0.0., it consists of a simple E-Commerce Web App that uses Vanilla JS, Nodejs, Express.
+This is a small web app created as part of a Udemy course: Nodejs - The Complete Guide (incl. MVC, REST APIs, GraphQL) from the instructor [Maximilian Schwarzmüller](https://academind.com). The Project uses basics and advanced concepts of JavaScript (including ES6) and is currently not fully functionable. A deployment is programmmed by the end of the course. Its currently version is 1.0.0., it consists of a simple E-Commerce Web App that uses Vanilla JS, Nodejs, Express.
 
 ---
 
@@ -26,7 +26,7 @@ The web app requires to be inicialized with npm in order to dowload the packages
 
     npm install
 
-After the proper instalation, the page can be started with the following command in order to run o a localhost:
+After the proper instalation, the page can be started with the following command in order to run on a localhost:
 
     npm run start
 
